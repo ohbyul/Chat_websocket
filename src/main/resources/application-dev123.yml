@@ -1,0 +1,5 @@
+spring:
+    application:
+        name: redis-service
+    # profiles:
+    #     active: local

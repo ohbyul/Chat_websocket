@@ -1,6 +1,7 @@
 package com.xii.demo.config;
 
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.json.JSONObject;
@@ -15,17 +16,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.xii.demo.redis.ChatRoomRepository;
+import com.xii.demo.redis.RedisPublisher;
 @Component
-@Log4j2
+@RequiredArgsConstructor
 public class ChatHandler extends TextWebSocketHandler {
 
     private static List<WebSocketSession> list = new ArrayList<>();
+    private final RedisPublisher redisPublisher;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         System.out.println("payload : " + payload);
-
+        chatRoomRepository.enterChatRoom("f546f629-e327-4779-83ed-ea1cdc72b204");
+        redisPublisher.publish(chatRoomRepository.getTopic("f546f629-e327-4779-83ed-ea1cdc72b204"), message);
 /*
         JSONObject jObject  = new JSONObject(payload);
         String userName = jObject .getString("userName");
@@ -52,14 +58,14 @@ public class ChatHandler extends TextWebSocketHandler {
             System.out.println("session [ " + i + " ]" + list.get(i));
         }
         
-        List<String> userList = new ArrayList<>();
-        for(int i = 0 ; i < list.size() ; i++ ){
-            userList.add(list.get(i).getId());
-        }
-        System.out.println("userList 접 목록" + userList);
-        TextMessage textMessage = new TextMessage(userList.toString());
+        // List<String> userList = new ArrayList<>();
+        // for(int i = 0 ; i < list.size() ; i++ ){
+        //     userList.add(list.get(i).getId());
+        // }
+        // System.out.println("userList 접 목록" + userList);
+        // TextMessage textMessage = new TextMessage(userList.toString());
 
-        handleMessage(session, textMessage);
+        // handleMessage(session, textMessage);
     }
 
     /* Client가 접속 해제 시 호출되는 메서드드 */

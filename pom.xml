@@ -66,6 +66,30 @@
 			<version>20210307</version>
 		</dependency>
 
+		<!-- 레디스 클라이언트 연결을 위한 추가  -->
+		<dependency> 
+			<groupId>org.springframework.boot</groupId> 
+			<artifactId>spring-boot-starter-data-redis</artifactId> 
+		</dependency> 
+		
+		<!-- 
+			임베디드 레디스 서버를 사용하기 위해 추가
+			scope가 test로 되어있으니, 필요에 따라 제거해도 상관없다. 
+			다만, test로 되어있을 경우, src.main환경에서는 사용할 수 없으니 주의.
+		 -->
+		<dependency> 
+			<groupId>it.ozimov</groupId> 
+			<artifactId>embedded-redis</artifactId> 
+			<version>0.7.2</version> 
+			<!-- <scope>test</scope>  -->
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-messaging -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+			<version>5.3.14</version>
+		</dependency>
 
 
 	</dependencies>
