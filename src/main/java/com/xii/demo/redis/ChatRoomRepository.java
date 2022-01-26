@@ -48,25 +48,33 @@ public class ChatRoomRepository {
      * 채팅방 생성 : 서버간 채팅방 공유를 위해 redis hash에 저장한다.
      */
     public ChatRoom createChatRoom(String name) {
-        System.out.println(name);
         ChatRoom chatRoom = ChatRoom.create(name);
         opsHashChatRoom.put(CHAT_ROOMS, chatRoom.getRoomId(), chatRoom);
         return chatRoom;
     }
 
+
     /**
      * 채팅방 입장 : redis에 topic을 만들고 pub/sub 통신을 하기 위해 리스너를 설정한다.
      */
-    public void enterChatRoom(String roomId) {
-        ChannelTopic topic = topics.get(roomId);
-        if (topic == null) {
-            topic = new ChannelTopic(roomId);
-            redisMessageListener.addMessageListener(redisSubscriber, topic);
-            topics.put(roomId, topic);
-        }
-    }
+//     public void enterChatRoom(String roomId) {
+//         ChannelTopic topic = topics.get(roomId);
+//         if (topic == null) {
+//             topic = new ChannelTopic(roomId);
+//             redisMessageListener.addMessageListener(redisSubscriber, topic);
+//             topics.put(roomId, topic);
+//         }
+//     }
 
-    public ChannelTopic getTopic(String roomId) {
-        return topics.get(roomId);
-    }
+//     public ChannelTopic getTopic(String roomId) {
+//         return topics.get(roomId);
+//     }
 }
+
+
+/**
+ * 채팅방 정보는 초기화 되지 않도록 생성 시 Redis Hash에 저장하도록 처리합니다. 
+ * 채팅방 정보를 조회할 때는 Redis Hash에 저장된 데이터를 불러오도록 메서드 내용을 수정합니다. 
+ * 채팅방 입장 시에는 채팅방 id로 Redis topic을 조회하여 pub/sub 메시지 리스너와 연동 합니다.
+ * 
+ */

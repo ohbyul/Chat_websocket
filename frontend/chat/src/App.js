@@ -8,8 +8,8 @@ function App() {
     <div>
       <Main/> 
       {/* <SocketTest /> */}
-      <Socket />
-      {/* <RoomList /> */}
+      {/* <Socket /> */}
+      <RoomList />
     </div>
   );
 }

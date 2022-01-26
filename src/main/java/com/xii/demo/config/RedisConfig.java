@@ -13,6 +13,7 @@ public class RedisConfig {
 
     /**
      * redis pub/sub 메시지를 처리하는 listener 설정
+     * - redis의 pub/sub 기능을 이용할 것이므로 MessageListener 설정을 추가
      */
     @Bean
     public RedisMessageListenerContainer redisMessageListener(RedisConnectionFactory connectionFactory) {
@@ -23,6 +24,7 @@ public class RedisConfig {
 
     /**
      * 어플리케이션에서 사용할 redisTemplate 설정
+     * 어플리케이션에서 redis 사용을 위해 redisTemplate 설정도 추가
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {

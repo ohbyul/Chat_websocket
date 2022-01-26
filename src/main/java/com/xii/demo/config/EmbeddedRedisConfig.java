@@ -23,9 +23,15 @@
 
 //     @PostConstruct
 //     public void redisServer() {
-//         redisServer = new RedisServer(redisPort);
-//         System.out.println("레디스 서버 start");
-//         redisServer.start();
+
+//         if(redisServer.ports().size()==0){
+//             redisServer = new RedisServer(redisPort);
+//             redisServer.start();
+//             System.out.println("redis server start ! port : [" +redisPort+ "]");
+//         }else{
+//             System.out.println(redisServer.ports().get(0) + "already redis server on!");
+//         }
+        
 //     }
 
 //     @PreDestroy

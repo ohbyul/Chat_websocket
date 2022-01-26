@@ -38,3 +38,10 @@ public class RedisSubscriber implements MessageListener {
         }
     }
 }
+
+/**
+ * Redis에 메시지 발행이 될 때까지 대기하였다가 메시지가 발행되면 해당 메시지를 읽어 처리하는 리스너입니다.
+ *  MessageListener를 상속받아 onMessage 메서드를 재작성합니다. 
+ * 아래에서는 Redis에 메시지가 발행되면 해당 메시지를 ChatMessage로 변환하고 
+ * messaging Template을 이용하여 채팅방의 모든 websocket 클라이언트들에게 메시지를 전달하도록 구현되어 있습니다. 
+ */
