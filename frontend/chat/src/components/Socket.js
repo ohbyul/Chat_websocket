@@ -13,8 +13,9 @@ const Socket = ({roomInfo,sender}) => {
     const [socketConnected, setSocketConnected] = useState(false);
     const [error , setError] = useState(false)
     const [items, setItems] = useState([]);
-    const [userList , setUserList] = useState('')
+    const [userList , setUserList] = useState([])
     const msgRef = useRef(null)
+    const no = useRef(1)
 
     let ws = useRef(null);
     
@@ -30,23 +31,7 @@ const Socket = ({roomInfo,sender}) => {
             })
         console.log("--------------------------------------");
         
-        
-        
-        // const message = {
-        //     type : "ENTER" ,
-        //     message : "오별" ,
-        //     roomId :roomInfo.roomId , 
-        //     sender : sender
-        // }
-        // // const message = JSON.stringify(data)
-        // // console.log(message);
-        // axios.get( "/pub/chat/message" ,message)
-        // .then( res => {
-        //     console.log("res++++++",res);
-        // })
-        // .catch( error => {
-        //     console.log(error);
-        // })
+
     },[roomInfo])
 
 
@@ -89,6 +74,15 @@ const Socket = ({roomInfo,sender}) => {
                 let chatData =''
                 if(type==='ENTER'){
                      chatData = `=========${JSONdata.message}=========`
+                //접속자 다른 방법으로..
+                     //      setUserList([
+                //         ...userList ,
+                //         {
+                //             index : no.current++,
+                //             userId : JSONdata.sender
+                //         }
+                //    ])
+                //     console.log("initSend -> userList -> ",userList);
                 }else if(type==='TALK'){
                      chatData ='[' + JSONdata.sender + '] : ' + JSONdata.message
                 }else{
@@ -114,10 +108,6 @@ const Socket = ({roomInfo,sender}) => {
     }
 
     const onSend = () => {
-        // if(user === null || user.trim() ===''){
-        //     console.log('유저명을 입력해주세요');
-        //     setUser('USER')
-        // }
         const data = {
             roomId : roomInfo.roomId,
             userName : sender , 
@@ -138,7 +128,7 @@ const Socket = ({roomInfo,sender}) => {
             text : sendMsg 
         }
         const jsonData = JSON.stringify(data)
-        console.log("data" , jsonData);
+        console.log("onDisconnect data" , jsonData);
         ws.current.send(jsonData)
         ws.current.close()
     }
@@ -150,8 +140,8 @@ const Socket = ({roomInfo,sender}) => {
             {/* <input type='text' value={user} onChange={e => setUser(e.target.value)} /> */}
             <span> {sender} </span>
             <input type='text' value={sendMsg} onChange={e => setSendMsg(e.target.value)} ref={msgRef} />
+            <button onClick={onSend}>Send</button>
             <p>
-                <button onClick={onSend}>Send</button>
                 <button onClick={onDisconnect}>Disconnect</button>
             </p>
             <div style={style}>
@@ -164,7 +154,7 @@ const Socket = ({roomInfo,sender}) => {
             <div>
                 <p>접속현황</p>
                 <div style={{width:"100px",height:"100px",border:'1px solid #000'}}>
-
+                    
                 </div>
             </div>
         </div>

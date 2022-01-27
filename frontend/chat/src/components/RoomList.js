@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Socket from './Socket';
 
 const RoomList = () => {
@@ -8,6 +8,7 @@ const RoomList = () => {
     const [roomInfo , setRoomInfo] =useState('')
     const [ sender , setSender ] = useState('')
     const [ loading, setLoading ] = useState(true)
+    const roomRef = useRef(null)
     useEffect( ()=> {
         // getData()
         console.log("roomLst.js -> useEffect on");
@@ -35,6 +36,7 @@ const RoomList = () => {
                 console.log("------------------");
                 alert(res.data.name+"방 개설에 성공하였습니다.")
                 setRoomNane('')
+                roomRef.current.focus()
                 setLoading(!loading)
             })
             .catch(error => {
@@ -60,7 +62,7 @@ const RoomList = () => {
             <div>채팅방</div>
             <div>
                 <label>방제목</label>
-                <input type="text" value={roomName} onChange={e => setRoomNane(e.target.value)}/>
+                <input type="text" value={roomName} onChange={e => setRoomNane(e.target.value)} ref={roomRef}/>
                 <button onClick={onAdd}>채팅방 개설</button>
             </div>
             <div>

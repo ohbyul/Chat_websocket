@@ -38,7 +38,7 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
     private static List<WebSocketSession> list = new ArrayList<>();
     // private Map<String, List<WebSocketSession>> channelMap = new HashMap<>();
     private Map<String, Object> channelMap = new HashMap<>();
-    private Map<String, Object> userMap = new HashMap<>();
+    // private Map<String, Object> userMap = new HashMap<>();
     private final RedisPublisher redisPublisher;
     private final RedisTemplate redisTemplate;
     private final SimpMessageSendingOperations messagingTemplate;
@@ -146,13 +146,44 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
 
         //subscriber...redis 구독..
         enterChatRoom(roomId);
-        //키 ,값 : 유저아이디, 웹소켓세션
         
+        // if (channelMap.get(roomId) == null) {
+        //     list = new ArrayList<>();
+        // }
+        // else {
+        //     list = channelMap.get(roomId);
+        // }
+        //list.add(session);
+        // channelMap.put(roomId, list);
         
-        userMap.put(userId, session);
-        System.out.println("userMap size : " + userMap.size());
-        channelMap.put(roomId, userMap);
+        //check
+        System.out.println("[세션 확인 전] channelMap size : " + channelMap.size());
 
+        if (channelMap.get(roomId) == null) {
+            Map<String, Object> userMap = new HashMap<>();
+            System.out.println("[세션 확인 전] userMap size : " + userMap.size());
+            userMap.put(userId, session);
+            channelMap.put(roomId, userMap);
+            System.out.println("[세션 확인 후] userMap size : " + userMap.size());
+        }else {
+            //channelMap 에 기존 roomID 존재
+            Map<String , Object> userMap = (Map<String, Object>) channelMap.get(roomId);
+            System.out.println("[세션 확인 전] userMap size : " + userMap.size());
+            //동일여부 체크
+            if(userMap.get(userId) != null){
+                if(userMap.get(userId).equals(session)){
+                    System.out.println("같은세션 존재");       
+                }else{
+                    System.out.println("다른세션 존재 / 새로고침이나 채널이동 등으로 발생");
+                }
+            }
+            //세션 동일 여부와 관련없음 
+            userMap.put(userId, session);
+            channelMap.put(roomId, userMap);
+            System.out.println("[세션 확인 후] userMap size : " + userMap.size());
+        }
+
+        System.out.println("[세션 확인 후] channelMap size : " + channelMap.size());
 
 
 
