@@ -7,20 +7,21 @@ const RoomList = () => {
     const [roomList , setRoomList] = useState([])
     const [roomInfo , setRoomInfo] =useState('')
     const [ sender , setSender ] = useState('')
+    const [ loading, setLoading ] = useState(true)
     useEffect( ()=> {
         // getData()
-        console.log("useEffect on");
+        console.log("roomLst.js -> useEffect on");
         axios.get("/chat/rooms")
             .then(res => {
-                console.log(res.data);
+                console.log("채팅 리스트 /chat/rooms",res.data);
                 setRoomList(res.data)
             })
             .catch(error => {
                 console.log(error);
             })
         
-    },[])
-    //자동 렌더링 전 
+    },[loading])
+    //자동 렌더링 전 roomList 넣으면 무한 반복..
 
     const onAdd = () =>{
         if(roomName === "" || roomName === null){
@@ -30,10 +31,11 @@ const RoomList = () => {
             axios.get("/chat/room?name="+roomName)
             .then( res => {
                 console.log("------------------");
-                console.log("res" , res);
+                console.log("채팅방 생성 결과값" , res);
                 console.log("------------------");
                 alert(res.data.name+"방 개설에 성공하였습니다.")
                 setRoomNane('')
+                setLoading(!loading)
             })
             .catch(error => {
                 console.log(error);
@@ -42,11 +44,14 @@ const RoomList = () => {
     }
 
     const onChat = (roomInfo) => {
-        console.log(roomInfo)
-        setRoomInfo(roomInfo)
         const nick = prompt('대화명을 입력해 주세요.');
-        console.log(nick);
-        setSender(nick)
+        if(nick===null || nick === ''){
+            alert("대화방 입장을 취소하였습니다.")
+        }else{
+            alert("대화방을 입장합니다.")
+            setRoomInfo(roomInfo)
+            setSender(nick)
+        }
     }
 
 

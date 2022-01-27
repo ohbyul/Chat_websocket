@@ -21,8 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.xii.demo.redis.ChatRoomRepository;
 import com.xii.demo.redis.RedisPublisher;
@@ -34,6 +36,9 @@ import com.xii.demo.vo.ChatMessage.MessageType;
 public class ChatHandler extends TextWebSocketHandler implements MessageListener{
 
     private static List<WebSocketSession> list = new ArrayList<>();
+    // private Map<String, List<WebSocketSession>> channelMap = new HashMap<>();
+    private Map<String, Object> channelMap = new HashMap<>();
+    private Map<String, Object> userMap = new HashMap<>();
     private final RedisPublisher redisPublisher;
     private final RedisTemplate redisTemplate;
     private final SimpMessageSendingOperations messagingTemplate;
@@ -52,10 +57,16 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
 
         JSONObject jObject = new JSONObject(payload);
         String type = jObject.get("type").toString();
+        String roomId = jObject.get("roomId").toString();
         if(("INIT").equals(type)){
-            //subscriber...redis 구독..
-            //구독 
-            enterChatRoom(jObject.get("roomId").toString());
+            // if (channelMap.get(roomId) == null) {
+            //     list = new ArrayList<>();
+            // }
+            // else {
+            //     list = channelMap.get(roomId);
+            // }
+            //list.add(session);
+            // channelMap.put(roomId, list);
             //입장메세지
             ChatMessage enterMessage = new ChatMessage();
             enterMessage.setMessage(jObject.get("userName").toString()+" 님이 입장 하셨습니다.");
@@ -64,6 +75,9 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
             enterMessage.setType(MessageType.ENTER);
             redisPublisher.publish(getTopic(jObject.get("roomId").toString()), enterMessage);
             System.out.println("-----------");
+        }else if (type.equals(("BYE"))) {
+            // list = channelMap.get(roomId);
+            // list.remove(roomId);            
         }else {
             //메세지 보내기 type = TALK 
             ChatMessage talkMessage = new ChatMessage();
@@ -89,7 +103,7 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
     public void onMessage(Message message, byte[] pattern) {
         try {
             // redis에서 발행된 데이터를 받아 deserialize
-            System.out.println("@#@#@#" + message);
+            System.out.println("onMessage : " + message);
             String publishMessage = (String) redisTemplate.getStringSerializer().deserialize(message.getBody());
             System.out.println("publishMessage : " + publishMessage);
 
@@ -97,10 +111,21 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
             ChatMessage roomMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
             System.out.println("roomMessage : " + roomMessage.toString());
 
-            // Websocket 구독자에게 채팅 메시지 Send
+            String roomId = roomMessage.getRoomId();
+            Map<String, Object> userList = (Map<String, Object>) channelMap.get(roomId);
+            list = new ArrayList<>();
+
+            Iterator<String> iterator = userList.keySet().iterator();
+            while(iterator.hasNext()){
+                String key = (String)iterator.next(); // 키 = userID 얻기
+                WebSocketSession userSess = (WebSocketSession) userList.get(key);
+                list.add(userSess);
+            }
+
             for(WebSocketSession sess: list) {
                 sess.sendMessage( new TextMessage(publishMessage));
             }
+
 
             // Websocket 구독자에게 채팅 메시지 Send
             // messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getRoomId(), roomMessage);
@@ -113,14 +138,35 @@ public class ChatHandler extends TextWebSocketHandler implements MessageListener
     /* Client 가 접속 시 호출되는 메서드*/
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Map<String,Object> map = new HashMap<>();
-        
-        list.add(session);
+        String roomId = session.getUri().toString().split("roomId=")[1];
+        roomId = roomId.split("&userId=")[0];
+        String userId = session.getUri().toString().split("userId=")[1];
 
-        System.out.println(session + " 클라이언트 접속");
-        for(int i = 0 ; i<list.size() ;i++){
-            System.out.println("session [ " + i + " ]" + list.get(i));
-        }
+        System.out.println("url...room ID : " + roomId + " / userId : " + userId );
+
+        //subscriber...redis 구독..
+        enterChatRoom(roomId);
+        //키 ,값 : 유저아이디, 웹소켓세션
+        
+        
+        userMap.put(userId, session);
+        System.out.println("userMap size : " + userMap.size());
+        channelMap.put(roomId, userMap);
+
+
+
+
+
+
+
+
+
+        // list.add(session);
+
+        // System.out.println(session + " 클라이언트 접속");
+        // for(int i = 0 ; i<list.size() ;i++){
+        //     System.out.println("session [ " + i + " ]" + list.get(i));
+        // }
         
         //...여기다 sub하고 싶은데..
 

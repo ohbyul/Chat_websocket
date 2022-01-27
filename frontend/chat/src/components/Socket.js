@@ -9,7 +9,7 @@ const Socket = ({roomInfo,sender}) => {
     //send
     const [sendMsg, setSendMsg] = useState('')
     //userName
-    const [user , setUser] = useState(sender)
+    const [user , setUser] = useState({})
     const [socketConnected, setSocketConnected] = useState(false);
     const [error , setError] = useState(false)
     const [items, setItems] = useState([]);
@@ -19,11 +19,11 @@ const Socket = ({roomInfo,sender}) => {
     let ws = useRef(null);
     
     useEffect ( () => {
-        console.log("BBBBBBB" , roomInfo);
+        console.log("socket.js -> useEffect -> roomInfo" , roomInfo);
         const path = "/room/" + roomInfo.roomId
         axios.get( "/chat/room/" + roomInfo.roomId)
             .then( res => {
-                console.log("res---",res);
+                console.log("axios -> /chat/room/ -> 결과값",res);
             })
             .catch( error => {
                 console.log(error);
@@ -51,7 +51,7 @@ const Socket = ({roomInfo,sender}) => {
 
 
 
-    const webSocketUrl = 'ws://localhost:8080/ws/chat'
+    const webSocketUrl = `ws://localhost:8080/ws/chat?roomId=${roomInfo.roomId}&userId=${sender}`
     useEffect( () => {
         // if (!ws.current) {
         if (sender !== '') {
@@ -63,11 +63,7 @@ const Socket = ({roomInfo,sender}) => {
                 console.log("connected to " + webSocketUrl);
                 console.log("message 1 : " + message);
                 console.log("room info " , roomInfo)
-                // const data = '유저 입장'
-                // const text = JSON.stringify(data);
-                // setItems(
-                //     (prevItems) => [...prevItems,text]
-                // )  
+
                 setSocketConnected(true)
                 console.log("message 2" , message)
                 initSend()
@@ -76,6 +72,8 @@ const Socket = ({roomInfo,sender}) => {
             ws.current.onclose = (error) => {
                 console.log("disconnect from " + webSocketUrl);
                 console.log(error);
+                socketConnected(false)
+
             }
             // WebSocket 서버와 통신 중에 에러가 발생하면 요청되는 함수
             ws.current.onerror = (error)=> {
@@ -87,10 +85,15 @@ const Socket = ({roomInfo,sender}) => {
             ws.current.onmessage = (evt) => {
                 const JSONdata = JSON.parse(evt.data)      
                 console.log("onMessage",JSONdata);
-                const chatData ='[' + JSONdata.sender + '] : ' + JSONdata.message
-                console.log("^^^^^^^^^chatData : " , chatData)
-                // const text = JSON.stringify(chatData)
-                // console.log("text  dddd : " , text)
+                const type = JSONdata.type
+                let chatData =''
+                if(type==='ENTER'){
+                     chatData = `=========${JSONdata.message}=========`
+                }else if(type==='TALK'){
+                     chatData ='[' + JSONdata.sender + '] : ' + JSONdata.message
+                }else{
+                    chatData = `=========${JSONdata.message}=========`
+                }
                 setItems(
                     (prevItems) => [...prevItems, chatData]
                 )
@@ -99,7 +102,6 @@ const Socket = ({roomInfo,sender}) => {
     },[sender])
 
     const initSend = () => {
-        // if(socketConnected){
             const dataList = {
                 roomId : roomInfo.roomId,
                 roomName : roomInfo.name , 
@@ -107,9 +109,8 @@ const Socket = ({roomInfo,sender}) => {
                 type : "INIT"
             }
             const data = JSON.stringify(dataList)
-            console.log("data",data)
+            console.log("initSend data",data)
             ws.current.send(data)
-        // }
     }
 
     const onSend = () => {
@@ -130,6 +131,15 @@ const Socket = ({roomInfo,sender}) => {
         msgRef.current.focus()
     }
     const onDisconnect = () => {
+        const data = {
+            roomId : roomInfo.roomId,
+            userName : sender , 
+            type : "BYE",
+            text : sendMsg 
+        }
+        const jsonData = JSON.stringify(data)
+        console.log("data" , jsonData);
+        ws.current.send(jsonData)
         ws.current.close()
     }
 
