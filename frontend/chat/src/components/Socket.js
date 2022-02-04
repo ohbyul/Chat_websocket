@@ -14,6 +14,10 @@ const Socket = ({roomInfo,sender}) => {
     const [error , setError] = useState(false)
     const [items, setItems] = useState([]);
     const [userList , setUserList] = useState([])
+    //file
+    const [file, setFile] = useState();
+    const [fileName, setFileName] = useState("");
+
     const msgRef = useRef(null)
     const no = useRef(1)
 
@@ -57,7 +61,7 @@ const Socket = ({roomInfo,sender}) => {
             ws.current.onclose = (error) => {
                 console.log("disconnect from " + webSocketUrl);
                 console.log(error);
-                socketConnected(false)
+                setSocketConnected(false)
 
             }
             // WebSocket 서버와 통신 중에 에러가 발생하면 요청되는 함수
@@ -128,19 +132,53 @@ const Socket = ({roomInfo,sender}) => {
             text : sendMsg 
         }
         const jsonData = JSON.stringify(data)
-        console.log("onDisconnect data" , jsonData);
         ws.current.send(jsonData)
+        console.log("onDisconnect data" , jsonData);
+        console.log("BYE 메세지보내기");
+        //TODO : bye 메세지 오류 close 전 메세지 send 안됨
         ws.current.close()
     }
 
+    const onFile = () => {
+        //formData를 사용해야할지 고민
+        // const formData = new FormData();
+        // formData.append("file", file);
+        // formData.append("fileName", fileName);
+        const data = {
+            roomId : roomInfo.roomId,
+            userName : sender , 
+            type : "FILE",
+            file : file 
+        }
+        const jsonData = JSON.stringify(data)
+        console.log("onFile -> jsonData",jsonData)
+        ws.current.send(jsonData)
+
+    }
+
+
     return (
         <div style={{margin : 20}}>
-            <div>채팅방 이름 : {roomInfo.name} </div>
+            <label>채팅방 이름 : {roomInfo.name} </label>
             <div>socket connected : {`${socketConnected}`}</div>
             {/* <input type='text' value={user} onChange={e => setUser(e.target.value)} /> */}
-            <span> {sender} </span>
-            <input type='text' value={sendMsg} onChange={e => setSendMsg(e.target.value)} ref={msgRef} />
-            <button onClick={onSend}>Send</button>
+            <p>
+                <span> {sender} </span>
+                <input type='text' value={sendMsg} onChange={e => setSendMsg(e.target.value)} ref={msgRef} />
+                <button onClick={onSend}>Send</button>
+            </p>
+            <div>
+                <label >파일업로드</label >
+                <input type="file" 
+                    onChange={(e) => { 
+                        setFile(e.target.files[0]);
+                        setFileName(e.target.files[0].name)
+                     }} 
+                    id="upload-file" name="file" 
+                />
+                {/* <div>{profile_preview}</div> */}
+                <button onClick={onFile} >올리기</button>
+            </div>
             <p>
                 <button onClick={onDisconnect}>Disconnect</button>
             </p>
